@@ -1,3 +1,6 @@
+<h1 align=center>Toyota Corolla AMOLED Clock</h1>
+<p align=center>Custom clock project using the LilyGo T-Display-S3 AMOLED</p>
+
 ### Requirements
 - **ESP-IDF** <= v4.4.6
 - **Arduino-ESP32** <= v2.0.14 *(Place inside components folder)*
