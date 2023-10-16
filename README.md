@@ -15,6 +15,3 @@
 - **VSCode (ESP-IDF)**
     - Set device to `esp32s3`
     - Set flash method to `JTAG`
-
-### Notes
-- `TFT-eSPI` is only being used to draw the components, `rm67162.cpp` will set the screen contents
