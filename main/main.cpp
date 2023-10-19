@@ -1,17 +1,18 @@
 
 
 #include <Arduino.h>
+#include <TFT_eSPI.h>
 #include <esp_timer.h>
 #include <driver/gpio.h>
 
+#include "digital_clock.h"
 #include "rm67162.h"
-#include "TFT_eSPI.h"
 #include "main.h"
 
 // extension board IO
 #define GPIO_LAMP (gpio_num_t) 46
 #define GPIO_ACC (gpio_num_t) 45
-#define GPIO_RESET (gpio_num_t) 21
+#define GPIO_RESET (gpio_num_t) 44
 #define GPIO_HOUR (gpio_num_t) 43
 #define GPIO_MINUTE (gpio_num_t) 42
 
@@ -23,13 +24,20 @@
 #define CANVAS_X 510
 #define CANVAS_Y 146
 
-uint16_t offset[2] = { 0, 0 };
-uint8_t brightness = 255;
+// max/min screen brightness
+#define MAX_BRIGHTNESS 255
+#define MIN_BRIGHTNESS 55
 
-// default state 0
+// initialise canvas x,y offset
+uint16_t offset[2] = { 0, 0 };
+
+// initialise screen brightness
+uint8_t brightness = MAX_BRIGHTNESS;
+
+// initialise gpio state tracker
 gpio_state_t gpio_state = { 0, 0, 0, 0, 0 };
 
-// starts at midnight
+// initialise clock
 clock_state_t clock_state = {
     hour: 0,
     minute: 0,
@@ -43,14 +51,17 @@ TFT_eSprite sprite = TFT_eSprite(&tft);
 
 void increment_timer() {
     clock_state.second++;
+    
     // 60 seconds have passed
     if (clock_state.second >= 60) {
         clock_state.second = 0;
         clock_state.minute++;
+
         // 60 minutes have passed
         if (clock_state.minute >= 60) {
             clock_state.minute = 0;
             clock_state.hour++;
+
             // 24 hours have passed
             if (clock_state.hour >= 24) {
                 clock_state.hour = 0;
@@ -106,10 +117,11 @@ void draw_handler() {
 
     /*
         Display the current time as text
-    */
+    
     char current_time_str[20];
     sprintf(current_time_str, "Time: %02d:%02d:%02d", clock_state.hour, clock_state.minute, clock_state.second);
     sprite.drawString(current_time_str, offset[0] + 20, offset[1] + 20, 4);
+    */
 
     /*
         Display the mode as text at the bottom of the screen
@@ -129,7 +141,19 @@ void draw_handler() {
             break;
     }
 
-    lcd_PushColors(0, 0, 536, 240, (uint16_t*)sprite.getPointer());
+    TFT_eSprite* sprite_ptr = &sprite;
+    draw_digital_clock(sprite_ptr, offset[0], offset[1], clock_state.hour, clock_state.minute, clock_state.second);
+    //draw_digital_num(sprite_ptr, {
+    //    thickness: 16,
+    //    padding: 6,
+    //    width: 78,
+    //    color_active: ((12 << 11) | (40 << 5) | 12),
+    //    // RGB565: red 5 bits, green 6 bits, blue 5 bits
+    //    color_inactive: ((4 << 11) | (12 << 5) | 4),
+    //    active: { 1, 0, 1, 1, 1, 0, 1 }
+    //}, offset[0], offset[1]);
+
+    lcd_PushColors(0, 0, SCREEN_X, SCREEN_Y, (uint16_t*) sprite.getPointer());
 }
 
 void gpio_handler() {
@@ -221,11 +245,11 @@ void gpio_handler() {
             break;
         case 4:
             // brightness up
-            if (gpio_hour_active && brightness < 255) {
+            if (gpio_hour_active && brightness < MAX_BRIGHTNESS) {
                 brightness++;
                 lcd_brightness(brightness);
             }
-            if (gpio_min_active && brightness > 55) {
+            if (gpio_min_active && brightness > MIN_BRIGHTNESS) {
                 brightness--;
                 lcd_brightness(brightness);
             }
