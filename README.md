@@ -17,4 +17,4 @@
     - `INCLUDE_DIRS` should be set to `"."` (Relative path of `main` directory, includes the header files)
 - **VSCode (ESP-IDF)**
     - Set device to `esp32s3`
-    - Set flash method to `JTAG`
+    - Set flash method to `UART`
