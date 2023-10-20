@@ -314,7 +314,7 @@ void gpio_handler() {
 
             if (gpio_min_active) {
                 // toggle direction on button press
-                if (gpio_hour) {
+                if (gpio_minute) {
                     digit_whiteness_direction = !digit_whiteness_direction;
                 }
 
