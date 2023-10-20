@@ -12,4 +12,6 @@
 #define DIGIT_WIDTH 64
 #define DIGIT_THICKNESS 12
 
+uint16_t clock_height();
+uint16_t clock_width();
 void draw_digital_clock(TFT_eSprite *sprite, uint16_t x, uint16_t y, uint8_t hour, uint8_t minute, uint8_t second);

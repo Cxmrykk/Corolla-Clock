@@ -6,36 +6,23 @@
 #include <driver/gpio.h>
 
 #include "digital_clock.h"
-#include "rm67162.h"
+#include "driver/rm67162.h"
 #include "main.h"
-
-// extension board IO
-#define GPIO_LAMP (gpio_num_t) 46
-#define GPIO_ACC (gpio_num_t) 45
-#define GPIO_RESET (gpio_num_t) 44
-#define GPIO_HOUR (gpio_num_t) 43
-#define GPIO_MINUTE (gpio_num_t) 42
-
-// screen
-#define SCREEN_X 536
-#define SCREEN_Y 240
-
-// canvas
-#define CANVAS_X 510
-#define CANVAS_Y 146
-
-// max/min screen brightness
-#define MAX_BRIGHTNESS 255
-#define MIN_BRIGHTNESS 55
 
 // initialise canvas x,y offset
 uint16_t offset[2] = { 0, 0 };
+uint16_t const clock_offset[2] = {
+    (uint16_t) ((CANVAS_X - clock_width()) / 2),
+    (uint16_t) ((CANVAS_Y - clock_height()) / 2)
+};
 
 // initialise screen brightness
 uint8_t brightness = MAX_BRIGHTNESS;
 
 // initialise gpio state tracker
 gpio_state_t gpio_state = { 0, 0, 0, 0, 0 };
+gpio_state_t gpio_active = { 0, 0, 0, 0, 0 };
+gpio_hold_state_t gpio_hold_state = { 0, 0, 0, 0, 0 };
 
 // initialise clock
 clock_state_t clock_state = {
@@ -88,10 +75,10 @@ void setup() {
     gpio_set_pull_mode(GPIO_ACC, GPIO_PULLDOWN_ONLY);
     gpio_set_pull_mode(GPIO_LAMP, GPIO_PULLDOWN_ONLY);
 
-    // use external pull-up resistor for buttons by default
-    gpio_set_pull_mode(GPIO_RESET, GPIO_FLOATING);
-    gpio_set_pull_mode(GPIO_HOUR, GPIO_FLOATING);
-    gpio_set_pull_mode(GPIO_MINUTE, GPIO_FLOATING);
+    // buttons 3.3V
+    gpio_set_pull_mode(GPIO_RESET, GPIO_PULLDOWN_ONLY);
+    gpio_set_pull_mode(GPIO_HOUR, GPIO_PULLDOWN_ONLY);
+    gpio_set_pull_mode(GPIO_MINUTE, GPIO_PULLDOWN_ONLY);
 
     // initialise timer
     esp_timer_handle_t periodic_timer;
@@ -110,18 +97,15 @@ void draw_handler() {
         Display a border around the canvas if alignment is toggled
     */
     if (mode == 1 || mode == 2) {
-        // possibly out of bounds
-        sprite.fillRect(offset[0] - 1, offset[1] - 1, CANVAS_X + 2, CANVAS_Y + 2, TFT_RED);
+        sprite.drawRect(offset[0] - 1, offset[1] - 1, CANVAS_X + 2, CANVAS_Y + 2, TFT_RED);
     }
-    sprite.fillRect(offset[0], offset[1], CANVAS_X, CANVAS_Y, TFT_BLACK);
+    //sprite.fillRect(offset[0], offset[1], CANVAS_X, CANVAS_Y, TFT_BLACK);
 
     /*
-        Display the current time as text
-    
-    char current_time_str[20];
-    sprintf(current_time_str, "Time: %02d:%02d:%02d", clock_state.hour, clock_state.minute, clock_state.second);
-    sprite.drawString(current_time_str, offset[0] + 20, offset[1] + 20, 4);
+        Draw the clock
     */
+    TFT_eSprite* sprite_ptr = &sprite;
+    draw_digital_clock(sprite_ptr, clock_offset[0] + offset[0], clock_offset[1] + offset[1], clock_state.hour, clock_state.minute, clock_state.second);
 
     /*
         Display the mode as text at the bottom of the screen
@@ -141,30 +125,51 @@ void draw_handler() {
             break;
     }
 
-    TFT_eSprite* sprite_ptr = &sprite;
-    draw_digital_clock(sprite_ptr, offset[0], offset[1], clock_state.hour, clock_state.minute, clock_state.second);
-    //draw_digital_num(sprite_ptr, {
-    //    thickness: 16,
-    //    padding: 6,
-    //    width: 78,
-    //    color_active: ((12 << 11) | (40 << 5) | 12),
-    //    // RGB565: red 5 bits, green 6 bits, blue 5 bits
-    //    color_inactive: ((4 << 11) | (12 << 5) | 4),
-    //    active: { 1, 0, 1, 1, 1, 0, 1 }
-    //}, offset[0], offset[1]);
-
     lcd_PushColors(0, 0, SCREEN_X, SCREEN_Y, (uint16_t*) sprite.getPointer());
 }
 
 void gpio_handler() {
-    // buttons pull high by default
-    bool gpio_reset_active = !gpio_get_level(GPIO_RESET);
-    bool gpio_hour_active = !gpio_get_level(GPIO_HOUR);
-    bool gpio_min_active = !gpio_get_level(GPIO_MINUTE);
+    // get actual GPIO high/low state
+    gpio_active.reset = !gpio_get_level(GPIO_RESET);
+    gpio_active.hour = !gpio_get_level(GPIO_HOUR);
+    gpio_active.minute = !gpio_get_level(GPIO_MINUTE);
 
+    // get interpreted GPIO high/low state (button held for cycle duration)
+    bool gpio_reset_active = gpio_active.reset && gpio_hold_state.reset == GPIO_HOLD_COUNT;
+    bool gpio_hour_active = gpio_active.hour && gpio_hold_state.hour == GPIO_HOLD_COUNT;
+    bool gpio_min_active =  gpio_active.minute && gpio_hold_state.minute == GPIO_HOLD_COUNT;
+
+    // get toggled GPIO high/low state
     bool gpio_reset = gpio_reset_active && !gpio_state.reset;
     bool gpio_hour = gpio_hour_active && !gpio_state.hour;
     bool gpio_minute = gpio_min_active && !gpio_state.minute;
+
+    /*
+        Update GPIO hold state
+    */
+    if (gpio_active.reset && gpio_hold_state.reset < GPIO_HOLD_COUNT) {
+        gpio_hold_state.reset++;
+    } else
+
+    if (!gpio_active.reset && gpio_hold_state.reset > 0) {
+        gpio_hold_state.reset--;
+    }
+
+    if (gpio_active.hour && gpio_hold_state.hour < GPIO_HOLD_COUNT) {
+        gpio_hold_state.hour++;
+    } else
+
+    if (!gpio_active.hour && gpio_hold_state.hour > 0) {
+        gpio_hold_state.hour--;
+    }
+
+    if (gpio_active.minute && gpio_hold_state.minute < GPIO_HOLD_COUNT) {
+        gpio_hold_state.minute++;
+    } else
+
+    if (!gpio_active.minute && gpio_hold_state.minute > 0) {
+        gpio_hold_state.minute--;
+    }
 
     /*
         Toggle state on

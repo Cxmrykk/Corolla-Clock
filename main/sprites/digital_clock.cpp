@@ -1,10 +1,16 @@
 #include <TFT_eSPI.h>
 #include "digital_clock.h"
 
+uint16_t clock_height() {
+    return (4 * DIGIT_PADDING) + (3 * DIGIT_THICKNESS) + (2 * (DIGIT_WIDTH - (2 * DIGIT_PADDING) - (2 * DIGIT_THICKNESS)));
+}
+
+uint16_t clock_width() {
+    return (14 * DIGIT_PADDING) + (6 * DIGIT_WIDTH) + (2 * DIGIT_THICKNESS);
+}
+
 void draw_digital_clock(TFT_eSprite *sprite, uint16_t x, uint16_t y, uint8_t hour, uint8_t minute, uint8_t second) {
-    // get height estimate
-    // (4 * padding) + (3 * thickness) + (2 * (width - (2 * padding) - (2 * thickness)))
-    uint16_t digit_height = (4 * DIGIT_PADDING) + (3 * DIGIT_THICKNESS) + (2 * (DIGIT_WIDTH - (2 * DIGIT_PADDING) - (2 * DIGIT_THICKNESS)));
+    uint16_t digit_height = clock_height();
 
     // get value of each digit
     uint8_t hour_digits[2] = { (uint8_t) (hour / 10), (uint8_t) (hour - ((hour / 10) * 10)) };
@@ -31,11 +37,11 @@ void draw_digital_clock(TFT_eSprite *sprite, uint16_t x, uint16_t y, uint8_t hou
     x += DIGIT_WIDTH + (DIGIT_PADDING * 2);
 
     // draw colon separating hour and minute digits
-    sprite->fillRect(x, (digit_height / 2) - (digit_height / 4) - (DIGIT_THICKNESS / 2),
+    sprite->fillRect(x, y + (digit_height / 2) - (digit_height / 4) - (DIGIT_THICKNESS / 2),
         DIGIT_THICKNESS, DIGIT_THICKNESS,
         CLOCK_COLON_COLOR);
 
-    sprite->fillRect(x, (digit_height / 2) + (digit_height / 4) - (DIGIT_THICKNESS / 2),
+    sprite->fillRect(x, y + (digit_height / 2) + (digit_height / 4) - (DIGIT_THICKNESS / 2),
         DIGIT_THICKNESS, DIGIT_THICKNESS,
         CLOCK_COLON_COLOR);
 
@@ -51,11 +57,11 @@ void draw_digital_clock(TFT_eSprite *sprite, uint16_t x, uint16_t y, uint8_t hou
     x += DIGIT_WIDTH + (DIGIT_PADDING * 2);
 
     // draw colon separating minute and second digits
-    sprite->fillRect(x, (digit_height / 2) - (digit_height / 4) - (DIGIT_THICKNESS / 2),
+    sprite->fillRect(x, y + (digit_height / 2) - (digit_height / 4) - (DIGIT_THICKNESS / 2),
         DIGIT_THICKNESS, DIGIT_THICKNESS,
         CLOCK_COLON_COLOR);
 
-    sprite->fillRect(x, (digit_height / 2) + (digit_height / 4) - (DIGIT_THICKNESS / 2),
+    sprite->fillRect(x, y + (digit_height / 2) + (digit_height / 4) - (DIGIT_THICKNESS / 2),
         DIGIT_THICKNESS, DIGIT_THICKNESS,
         CLOCK_COLON_COLOR);
 
