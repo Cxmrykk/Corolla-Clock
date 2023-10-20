@@ -1,5 +1,3 @@
-
-
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <esp_timer.h>
@@ -8,16 +6,23 @@
 #include "digital_clock.h"
 #include "driver/rm67162.h"
 #include "main.h"
-
-// initialise canvas x,y offset
-uint16_t offset[2] = { 0, 0 };
-uint16_t const clock_offset[2] = {
-    (uint16_t) ((CANVAS_X - clock_width()) / 2),
-    (uint16_t) ((CANVAS_Y - clock_height()) / 2)
-};
+#include "rgb565.h"
 
 // initialise screen brightness
 uint8_t brightness = MAX_BRIGHTNESS;
+
+// foreground white & background black (maximum: 63)
+uint8_t digit_whiteness = 0;
+uint8_t digit_opacity = GREEN_MAXIMUM / 10;
+
+// clock digit colours
+color_t digit_hue = { 0, GREEN_MAXIMUM, 0 };
+color_t digit_foreground = {0, GREEN_MAXIMUM, 0 };
+color_t digit_background = { 0, GREEN_MAXIMUM / 10, 0 };
+
+// whiteness/hue button direction
+bool digit_whiteness_direction = 1;
+//bool digit_hue_direction = 0;
 
 // initialise gpio state tracker
 gpio_state_t gpio_state = { 0, 0, 0, 0, 0 };
@@ -26,11 +31,30 @@ gpio_hold_state_t gpio_hold_state = { 0, 0, 0, 0, 0 };
 
 // initialise clock
 clock_state_t clock_state = {
-    hour: 0,
-    minute: 0,
-    second: 0
+    .hour = 0,
+    .minute = 0,
+    .second = 0
 };
 
+digital_clock_t digital_clock = {
+    &clock_state,
+    &digit_foreground,
+    &digit_background,
+    DIGIT_PADDING,
+    DIGIT_WIDTH,
+    DIGIT_THICKNESS
+};
+
+// canvas offset
+uint16_t offset[2] = { 0, 0 };
+
+// clock offset (centered)
+uint16_t const clock_offset[2] = {
+    (uint16_t) ((CANVAS_X - clock_width(&digital_clock)) / 2),
+    (uint16_t) ((CANVAS_Y - clock_height(&digital_clock)) / 2)
+};
+
+// clock mode
 uint8_t mode = 0;
 
 TFT_eSPI tft = TFT_eSPI();
@@ -104,24 +128,41 @@ void draw_handler() {
     /*
         Draw the clock
     */
-    TFT_eSprite* sprite_ptr = &sprite;
-    draw_digital_clock(sprite_ptr, clock_offset[0] + offset[0], clock_offset[1] + offset[1], clock_state.hour, clock_state.minute, clock_state.second);
+    draw_digital_clock(&sprite, &digital_clock, clock_offset[0] + offset[0], clock_offset[1] + offset[1]);
 
     /*
         Display the mode as text at the bottom of the screen
     */
     switch (mode) {
         case 1:
-            sprite.drawString("Set Horizontal Alignment", offset[0] + 20, (offset[1] + CANVAS_Y) - 40, 4);
+            sprite.drawString("Set Horizontal Alignment", offset[0], offset[1], 4);
+            sprite.drawString("H: Move display left", offset[0], offset[1] + 26, 4);
+            sprite.drawString("M: Move display right", offset[0], offset[1] + 52, 4);
             break;
         case 2:
-            sprite.drawString("Set Vertical Alignment", offset[0] + 20, (offset[1] + CANVAS_Y) - 40, 4);
+            sprite.drawString("Set Vertical Alignment", offset[0], offset[1], 4);
+            sprite.drawString("H: Move display up", offset[0], offset[1] + 26, 4);
+            sprite.drawString("M: Move display down", offset[0], offset[1] + 52, 4);
             break;
         case 3:
-            sprite.drawString("Set Time", offset[0] + 20, (offset[1] + CANVAS_Y) - 40, 4);
+            sprite.drawString("Set Time", offset[0], offset[1], 4);
+            sprite.drawString("H: Set hour", offset[0], offset[1] + 26, 4);
+            sprite.drawString("M: Set minute", offset[0], offset[1] + 52, 4);
             break;
         case 4:
-            sprite.drawString("Set Brightness", offset[0] + 20, (offset[1] + CANVAS_Y) - 40, 4);
+            sprite.drawString("Set Brightness", offset[0], offset[1], 4);
+            sprite.drawString("H: Increase brightness", offset[0], offset[1] + 26, 4);
+            sprite.drawString("M: Decrease brightness", offset[0], offset[1] + 52, 4);
+            break;
+        case 5:
+            sprite.drawString("Set Colour", offset[0], offset[1], 4);
+            sprite.drawString("H: Set Hue", offset[0], offset[1] + 26, 4);
+            sprite.drawString("M: Set Brightness", offset[0], offset[1] + 52, 4);
+            break;
+        case 6:
+            sprite.drawString("Set Opacity", offset[0], offset[1], 4);
+            sprite.drawString("H: Increase Opacity", offset[0], offset[1] + 26, 4);
+            sprite.drawString("M: Decrease Opacity", offset[0], offset[1] + 52, 4);
             break;
     }
 
@@ -208,28 +249,32 @@ void gpio_handler() {
         2: Vertical Alignment (up, down)
         3: Set Time (hour, minute)
         4: Brightness (+, -)
+        5: Colour (hue, brightness)
+        6: Opacity (+, -)
     */
     switch (mode) {
         case 1:
             // horizontal left
-            if (gpio_hour && offset[0] > 0) {
+            if (gpio_hour_active && offset[0] > 0) {
                 offset[0]--;
             }
             // horizontal right
-            if (gpio_minute && offset[0] < (SCREEN_X - CANVAS_X)) {
+            if (gpio_min_active && offset[0] < (SCREEN_X - CANVAS_X)) {
                 offset[0]++;
             }
             break;
+
         case 2:
             // vertical up
-            if (gpio_hour && offset[1] > 0) {
+            if (gpio_hour_active && offset[1] > 0) {
                 offset[1]--;
             }
             // vertical down
-            if (gpio_minute && offset[1] < (SCREEN_Y - CANVAS_Y)) {
+            if (gpio_min_active && offset[1] < (SCREEN_Y - CANVAS_Y)) {
                 offset[1]++;
             }
             break;
+
         case 3:
             // increment hour
             if (gpio_hour) {
@@ -248,6 +293,7 @@ void gpio_handler() {
                 clock_state.second = 0;
             }
             break;
+
         case 4:
             // brightness up
             if (gpio_hour_active && brightness < MAX_BRIGHTNESS) {
@@ -259,6 +305,44 @@ void gpio_handler() {
                 lcd_brightness(brightness);
             }
             break;
+
+        case 5:
+            if (gpio_hour_active) {
+                increment_color(&digit_hue, false);
+                update_colors(&digit_hue, &digit_foreground, &digit_background, digit_whiteness, digit_opacity);
+            }
+
+            if (gpio_min_active) {
+                // toggle direction on button press
+                if (gpio_hour) {
+                    digit_whiteness_direction = !digit_whiteness_direction;
+                }
+
+                // increment whiteness value, update active colour
+                if (digit_whiteness_direction && digit_whiteness < GREEN_MAXIMUM) {
+                    digit_whiteness++;
+                    update_colors(&digit_hue, &digit_foreground, &digit_background, digit_whiteness, digit_opacity);
+                } else
+
+                // decrement whiteness value, update active colour
+                if (!digit_whiteness_direction && digit_whiteness > 0) {
+                    digit_whiteness--;
+                    update_colors(&digit_hue, &digit_foreground, &digit_background, digit_whiteness, digit_opacity);
+                }
+            }
+            break;
+
+        case 6:
+            if (gpio_hour_active && digit_opacity < GREEN_MAXIMUM) {
+                digit_opacity++;
+                update_colors(&digit_hue, &digit_foreground, &digit_background, digit_whiteness, digit_opacity);
+            }
+
+            if (gpio_min_active && digit_opacity > 0) {
+                digit_opacity--;
+                update_colors(&digit_hue, &digit_foreground, &digit_background, digit_whiteness, digit_opacity);
+            }
+            break;
     }
 
     /*
@@ -267,13 +351,14 @@ void gpio_handler() {
     if (gpio_reset) {
         mode++;
         // cycle back to mode 0
-        if (mode > 4) {
+        if (mode > 6) {
             mode = 0;
         }
     }
 }
 
 void loop() {
+    sprite.setTextSize(1);
     gpio_handler();
     draw_handler();
 }

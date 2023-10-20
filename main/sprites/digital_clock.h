@@ -1,17 +1,21 @@
-#include "digital_num.h"
+#ifndef DIGITAL_CLOCK_H
+#define DIGITAL_CLOCK_H
 
-// clock colon colour RGB565
-#define CLOCK_COLON_COLOR ((12 << 11) | (40 << 5) | 12)
+    #include "digital_num.h"
+    #include "rgb565.h"
+    #include "main.h"
 
-// digit colours RGB565
-#define DIGIT_COLOR_ACTIVE ((12 << 11) | (40 << 5) | 12)
-#define DIGIT_COLOR_INACTIVE ((4 << 11)  | (12 << 5) | 4)
+    typedef struct {
+        clock_state_t *clock_state;
+        color_t *color_active;
+        color_t *color_inactive;
+        uint16_t padding;
+        uint16_t width;
+        uint16_t thickness;
+    } digital_clock_t;
 
-// digit dimensions (must be even number)
-#define DIGIT_PADDING 4
-#define DIGIT_WIDTH 64
-#define DIGIT_THICKNESS 12
+    uint16_t clock_height(digital_clock_t *digital_clock);
+    uint16_t clock_width(digital_clock_t *digital_clock);
+    void draw_digital_clock(TFT_eSprite *sprite, digital_clock_t *digital_clock, uint16_t x, uint16_t y);
 
-uint16_t clock_height();
-uint16_t clock_width();
-void draw_digital_clock(TFT_eSprite *sprite, uint16_t x, uint16_t y, uint8_t hour, uint8_t minute, uint8_t second);
+#endif
