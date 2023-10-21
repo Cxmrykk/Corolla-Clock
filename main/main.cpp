@@ -291,12 +291,13 @@ void gpio_handler() {
                 lcd_brightness(profile->brightness);
             }
 
-            timeout = TIMEOUT_DURATION;
-        }
+            // cancel normal button operation
+            if (timeout <= TIMEOUT_BRIGHTNESS) {
+                timeout = TIMEOUT_DURATION;
+                return;
+            }
 
-        // cancel normal button operation
-        if (timeout <= TIMEOUT_BRIGHTNESS) {
-            return;
+            timeout = TIMEOUT_DURATION;
         }
     }
 
