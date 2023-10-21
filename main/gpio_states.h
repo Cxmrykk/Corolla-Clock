@@ -6,7 +6,7 @@
     // extension board IO
     #define GPIO_LAMP GPIO_NUM_46
     #define GPIO_ACC GPIO_NUM_45
-    #define GPIO_RESET GPIO_NUM_21
+    #define GPIO_RESET GPIO_NUM_44
     #define GPIO_HOUR GPIO_NUM_43
     #define GPIO_MINUTE GPIO_NUM_42
 
