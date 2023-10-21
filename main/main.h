@@ -1,12 +1,10 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-    // extension board IO
-    #define GPIO_LAMP GPIO_NUM_46
-    #define GPIO_ACC GPIO_NUM_45
-    #define GPIO_RESET GPIO_NUM_44
-    #define GPIO_HOUR GPIO_NUM_43
-    #define GPIO_MINUTE GPIO_NUM_42
+    #include "digital_clock.h"
+
+    // watchdog vTaskDelay (screen refresh rate in Hertz)
+    #define REFRESH_RATE 60
 
     // screen
     #define SCREEN_X 536
@@ -20,8 +18,9 @@
     #define MAX_BRIGHTNESS 255
     #define MIN_BRIGHTNESS 55
 
-    // clock colon colour RGB565
-    #define CLOCK_COLON_COLOR ((12 << 11) | (40 << 5) | 12)
+    // default brightness
+    #define LAMP_OFF_BRIGHTNESS 255
+    #define LAMP_ON_BRIGHTNESS 155
 
     // digit colours RGB565
     #define DIGIT_COLOR_ACTIVE ((12 << 11) | (40 << 5) | 12)
@@ -32,29 +31,17 @@
     #define DIGIT_WIDTH 64
     #define DIGIT_THICKNESS 12
 
-    // maximum loop cycles to register GPIO event (prevents noise causing faulty inputs)
-    #define GPIO_HOLD_COUNT 5
+    // timeout events
+    #define TIMEOUT_DURATION 10
+    #define TIMEOUT_BRIGHTNESS 5
+    #define TIMEOUT_DISPLAY 1
 
     typedef struct {
-        bool accessory;
-        bool lamp;
-        bool reset;
-        bool hour;
-        bool minute;
-    } gpio_state_t;
-
-    typedef struct {
-        uint8_t accessory;
-        uint8_t lamp;
-        uint8_t reset;
-        uint8_t hour;
-        uint8_t minute;
-    } gpio_hold_state_t;
-
-    typedef struct {
-        uint8_t hour;
-        uint8_t minute;
-        uint8_t second;
-    } clock_state_t;
+        digital_clock_t *digital_clock;
+        color_t *hue;
+        uint8_t brightness;
+        uint8_t whiteness;
+        uint8_t opacity;
+    } clock_profile_t;
 
 #endif

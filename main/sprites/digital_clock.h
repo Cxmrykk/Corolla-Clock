@@ -3,7 +3,12 @@
 
     #include "digital_num.h"
     #include "rgb565.h"
-    #include "main.h"
+
+    typedef struct {
+        uint8_t hour;
+        uint8_t minute;
+        uint8_t second;
+    } clock_state_t;
 
     typedef struct {
         clock_state_t *clock_state;
