@@ -1,7 +1,15 @@
 <h1 align=center>Toyota Corolla AMOLED Clock</h1>
 <p align=center>Custom clock project using the LilyGo T-Display-S3 AMOLED</p>
 
-### Requirements
+### Features
+- Shows the time (hours, minutes, seconds)
+- Colour Configuration (hue, white level, opacity)
+- Size Configuration (scale, thickness, padding)
+- Different graphic profiles based on interior lighting (headlights)
+- Screen turns off when accessory off (use buttons to wake)
+- Dynamic Brightness
+
+### Dependencies
 - **ESP-IDF** <= v4.4.6
 - **Arduino-ESP32** <= v2.0.14 *(Place inside components folder)*
 - **TFT-eSPI** <= v2.5.31 *(Place inside components folder)*
