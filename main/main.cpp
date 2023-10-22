@@ -180,7 +180,7 @@ void draw_handler() {
     /*
         Display a border around the canvas if alignment is toggled
     */
-    if (mode_toggle && (mode == 1 || mode == 2)) {
+    if (mode == 1 || mode == 2) {
         sprite.drawRect(offset[0] - 1, offset[1] - 1, CANVAS_X + 2, CANVAS_Y + 2, TFT_WHITE);
     }
 
