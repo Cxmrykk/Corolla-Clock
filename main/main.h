@@ -11,8 +11,8 @@
     #define SCREEN_Y 240
 
     // canvas
-    #define CANVAS_X 510
-    #define CANVAS_Y 146
+    #define CANVAS_X 508
+    #define CANVAS_Y 144
 
     // max/min screen brightness
     #define MAX_BRIGHTNESS 255
