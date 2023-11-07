@@ -4,6 +4,7 @@
 #include <freertos/FreeRTOS.h>
 
 #include "digital_clock.h"
+#include "text_display.h"
 #include "driver/rm67162.h"
 #include "main.h"
 #include "rgb565.h"
@@ -193,52 +194,60 @@ void draw_handler() {
         Display the mode as text at the bottom of the screen
     */
     if (mode_toggle) {
-        switch (mode) {
-            case 0:
-                sprite.drawString("Set Time", offset[0], offset[1], 4);
-                sprite.drawString("H: Set hour", offset[0], offset[1] + 26, 4);
-                sprite.drawString("M: Set minute", offset[0], offset[1] + 52, 4);
-                break;
-            case 1:
-                sprite.drawString("Set Horizontal Alignment", offset[0], offset[1], 4);
-                sprite.drawString("H: Move display left", offset[0], offset[1] + 26, 4);
-                sprite.drawString("M: Move display right", offset[0], offset[1] + 52, 4);
-                break;
-            case 2:
-                sprite.drawString("Set Vertical Alignment", offset[0], offset[1], 4);
-                sprite.drawString("H: Move display up", offset[0], offset[1] + 26, 4);
-                sprite.drawString("M: Move display down", offset[0], offset[1] + 52, 4);
-                break;
-            case 3:
-                sprite.drawString("Set Brightness", offset[0], offset[1], 4);
-                sprite.drawString("H: Increase brightness", offset[0], offset[1] + 26, 4);
-                sprite.drawString("M: Decrease brightness", offset[0], offset[1] + 52, 4);
-                break;
-            case 4:
-                sprite.drawString("Set Colour", offset[0], offset[1], 4);
-                sprite.drawString("H: Set Hue", offset[0], offset[1] + 26, 4);
-                sprite.drawString("M: Set Brightness", offset[0], offset[1] + 52, 4);
-                break;
-            case 5:
-                sprite.drawString("Set Opacity", offset[0], offset[1], 4);
-                sprite.drawString("H: Increase Opacity", offset[0], offset[1] + 26, 4);
-                sprite.drawString("M: Decrease Opacity", offset[0], offset[1] + 52, 4);
-                break;
-            case 6:
-                sprite.drawString("Set Clock Size", offset[0], offset[1], 4);
-                sprite.drawString("H: Increase Size", offset[0], offset[1] + 26, 4);
-                sprite.drawString("M: Decrease Size", offset[0], offset[1] + 52, 4);
-                break;
-            case 7:
-                sprite.drawString("Set Clock Thickness", offset[0], offset[1], 4);
-                sprite.drawString("H: Increase Thickness", offset[0], offset[1] + 26, 4);
-                sprite.drawString("M: Decrease Thickness", offset[0], offset[1] + 52, 4);
-                break;
-            case 8:
-                sprite.drawString("Set Clock Padding", offset[0], offset[1], 4);
-                sprite.drawString("H: Increase Padding", offset[0], offset[1] + 26, 4);
-                sprite.drawString("M: Decrease Padding", offset[0], offset[1] + 52, 4);
-                break;
+        const char* contents[][3] = {
+            {
+                "Set Time",
+                "H: Set hour",
+                "M: Set minute"
+            },
+            {
+                "Set Horizontal Alignment",
+                "H: Move display left",
+                "M: Move display right"
+            },
+            {
+                "Set Vertical Alignment",
+                "H: Move display up",
+                "M: Move display down"
+            },
+            {
+                "Set Brightness",
+                "H: Increase brightness",
+                "M: Decrease brightness"
+            },
+            {
+                "Set Colour",
+                "H: Set Hue",
+                "M: Set Brightness"
+            },
+            {
+                "Set Opacity",
+                "H: Increase Opacity",
+                "M: Decrease Opacity"
+            },
+            {
+                "Set Clock Size",
+                "H: Increase Size",
+                "M: Decrease Size"
+            },
+            {
+                "Set Clock Thickness",
+                "H: Increase Thickness",
+                "M: Decrease Thickness"
+            },
+            {
+                "Set Clock Padding",
+                "H: Increase Padding",
+                "M: Decrease Padding"
+            }
+        };
+
+        if (mode >= 0 && mode < 9) {
+            int x = offset[0] < 0 ? 0 : offset[0];
+            int y = offset[1] < 0 ? 0 : offset[1];
+            draw_text_display(&sprite, 3, x, y, contents[mode]);
+        } else {
+            // Handle invalid mode
         }
     }
 
