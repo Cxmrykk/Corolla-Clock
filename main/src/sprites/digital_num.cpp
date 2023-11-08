@@ -1,6 +1,6 @@
-#include "digital_num.h"
+#include "sprites/digital_num.h"
 
-void draw_digital_num(TFT_eSprite *sprite, digital_num_t *digital_num, uint16_t x, uint16_t y) {
+void draw_digital_num(TFT_eSprite *sprite, Digit_Sprite_t *digital_num, uint16_t x, uint16_t y) {
     uint16_t rect_thickness = digital_num->width - (digital_num->thickness * 2) - (digital_num->padding * 2);
     
     /*

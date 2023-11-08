@@ -1,5 +1,6 @@
 #include <driver/gpio.h>
-#include "gpio_states.h"
+
+#include "drivers/gpio_states.h"
 
 void get_GPIO_states() {
     // get actual GPIO high/low state

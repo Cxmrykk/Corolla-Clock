@@ -1,17 +1,17 @@
 #include <TFT_eSPI.h>
-#include "digital_clock.h"
-#include "rgb565.h"
-#include "main.h"
 
-uint16_t clock_height(digital_clock_t *digital_clock) {
+#include "sprites/digital_clock.h"
+#include "sprites/tools/rgb565.h"
+
+uint16_t clock_height(Clock_Sprite_t *digital_clock) {
     return (4 * digital_clock->padding) + (3 * digital_clock->thickness) + (2 * (digital_clock->width - (2 * digital_clock->padding) - (2 * digital_clock->thickness)));
 }
 
-uint16_t clock_width(digital_clock_t *digital_clock) {
+uint16_t clock_width(Clock_Sprite_t *digital_clock) {
     return (14 * digital_clock->padding) + (6 * digital_clock->width) + (2 * digital_clock->thickness);
 }
 
-void draw_digital_clock(TFT_eSprite *sprite, digital_clock_t *digital_clock, uint16_t x, uint16_t y) {
+void draw_digital_clock(TFT_eSprite *sprite, Clock_Sprite_t *digital_clock, uint16_t x, uint16_t y) {
     uint16_t digit_height = clock_height(digital_clock);
 
     // convert colours to rgb565 integer
@@ -19,9 +19,9 @@ void draw_digital_clock(TFT_eSprite *sprite, digital_clock_t *digital_clock, uin
     uint16_t color_inactive = to_rgb565(digital_clock->color_inactive);
 
     // easier to read
-    uint8_t hour = digital_clock->clock_state->hour;
-    uint8_t minute = digital_clock->clock_state->minute;
-    uint8_t second = digital_clock->clock_state->second;
+    uint8_t hour = digital_clock->timer->hour;
+    uint8_t minute = digital_clock->timer->minute;
+    uint8_t second = digital_clock->timer->second;
 
     // get value of each digit
     uint8_t hour_digits[2] = { (uint8_t) (hour / 10), (uint8_t) (hour - ((hour / 10) * 10)) };
@@ -29,7 +29,7 @@ void draw_digital_clock(TFT_eSprite *sprite, digital_clock_t *digital_clock, uin
     uint8_t second_digits[2] = { (uint8_t) (second / 10), (uint8_t) (second - ((second / 10) * 10)) };
 
     // initialise digital number
-    digital_num_t digital_num = {
+    Digit_Sprite_t digital_num = {
         digital_clock->thickness,
         digital_clock->padding,
         digital_clock->width,

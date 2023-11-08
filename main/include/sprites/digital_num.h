@@ -11,7 +11,7 @@
         uint16_t color_active;
         uint16_t color_inactive;
         bool* active; // top to bottom, left to right
-    } digital_num_t;
+    } Digit_Sprite_t;
 
     // 0 - 9, element 11 is for undefined
     static bool segments_num_table[11][7] = {
@@ -28,7 +28,7 @@
         { 0, 0, 0, 0, 0, 0, 0 }
     };
 
-    void draw_digital_num(TFT_eSprite *sprite, digital_num_t *digital_num, uint16_t x, uint16_t y);
+    void draw_digital_num(TFT_eSprite *sprite, Digit_Sprite_t *digital_num, uint16_t x, uint16_t y);
     bool* active_segments(uint8_t value);
 
 #endif
