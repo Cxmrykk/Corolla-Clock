@@ -1,4 +1,4 @@
-#include "text_display.h"
+#include "sprites/text_display.h"
 #include <TFT_eSPI.h>
 
 void draw_text_display(TFT_eSprite *sprite, int lines, int x, int y, const char **contents) {

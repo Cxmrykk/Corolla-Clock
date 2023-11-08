@@ -1,4 +1,4 @@
-#include "rgb565.h"
+#include "sprites/tools/rgb565.h"
 
 /*
     Red:
@@ -15,7 +15,7 @@
 
     Increase/decrease swap when going opposite direction
 */
-void increment_color(color_t *color, bool opposite) {
+void increment_color(Color_t *color, bool opposite) {
     // colours have reached maximum value
     bool red_max = color->r == RED_MAXIMUM;
     bool green_max = color->g == GREEN_MAXIMUM;
@@ -83,7 +83,7 @@ void increment_color(color_t *color, bool opposite) {
     }
 }
 
-void update_colors(color_t *hue, color_t *foreground, color_t *background, uint8_t foreground_level, uint8_t background_level) {
+void update_colors(Color_t *hue, Color_t *foreground, Color_t *background, uint8_t foreground_level, uint8_t background_level) {
     // reset foreground and apply new level
     foreground->r = hue->r;
     foreground->g = hue->g;
@@ -98,7 +98,7 @@ void update_colors(color_t *hue, color_t *foreground, color_t *background, uint8
 
 
 // level is 63 maximum (5 bits)
-void apply_white(color_t *color, uint8_t level) {
+void apply_white(Color_t *color, uint8_t level) {
     float multiplier = (float) level / (float) GREEN_MAXIMUM;
     color->r += (uint8_t) ((float) (RED_MAXIMUM - color->r) * multiplier);
     color->g += (uint8_t) ((float) (GREEN_MAXIMUM - color->g) * multiplier);
@@ -106,13 +106,13 @@ void apply_white(color_t *color, uint8_t level) {
 }
 
 // level is 63 maximum (5 bits)
-void apply_black(color_t *color, uint8_t level) {
+void apply_black(Color_t *color, uint8_t level) {
     float multiplier = (float) level / (float) GREEN_MAXIMUM;
     color->r = (uint8_t) (color->r * multiplier);
     color->g = (uint8_t) (color->g * multiplier);
     color->b = (uint8_t) (color->b * multiplier);
 }
 
-uint16_t to_rgb565(color_t *color) {
+uint16_t to_rgb565(Color_t *color) {
     return ((color->r << 11) | (color->g << 5) | (color->b));
 }

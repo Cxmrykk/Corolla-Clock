@@ -1,7 +1,8 @@
-#include "rm67162.h"
 #include <SPI.h>
 #include <Arduino.h>
 #include <driver/spi_master.h>
+
+#include "drivers/rm67162.h"
 
 const static lcd_cmd_t rm67162_spi_init[] = {
     {0xFE, {0x00}, 0x01}, // PAGE

@@ -1,4 +1,12 @@
 idf_component_register(
-    SRCS "main.cpp" "gpio_states.h" "gpio_states.cpp" "rgb565.h" "rgb565.cpp" "driver/pins_config.h" "driver/rm67162.h" "driver/rm67162.cpp" "sprites/digital_num.cpp" "sprites/digital_num.h" "sprites/digital_clock.h" "sprites/digital_clock.cpp" "sprites/text_display.cpp" "sprites/text_display.h"
-    INCLUDE_DIRS "." "sprites"
+    SRCS "src/main.cpp"
+         "src/clock.cpp"
+         "src/interface.cpp"
+         "src/drivers/gpio_states.cpp"
+         "src/drivers/rm67162.cpp"
+         "src/sprites/digital_clock.cpp"
+         "src/sprites/digital_num.cpp"
+         "src/sprites/text_display.cpp"
+         "src/sprites/tools/rgb565.cpp"
+    INCLUDE_DIRS "include"
 )
