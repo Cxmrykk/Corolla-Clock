@@ -16,7 +16,7 @@
 
     // canvas
     #define CANVAS_X 508
-    #define CANVAS_Y 144
+    #define CANVAS_Y 142
 
     // max/min screen brightness
     #define MAX_BRIGHTNESS 255
@@ -33,7 +33,7 @@
     // digit dimensions (must be even number)
     #define DIGIT_PADDING 4
     #define DIGIT_WIDTH 58
-    #define DIGIT_THICKNESS 12
+    #define DIGIT_THICKNESS 10
 
     // timeout events
     #define TIMEOUT_DURATION 10
