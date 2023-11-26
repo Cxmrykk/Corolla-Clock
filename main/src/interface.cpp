@@ -30,10 +30,10 @@ void set_clock_time_default(Clock_State_t *state) {
     - M: Move Screen Right
 */
 void set_horizontal_alignment(Clock_State_t *state) {
-    if (gpio.hour.held && state->offset[0] > 0) {
+    if (gpio.hour.held) {
         state->offset[0]--;
     }
-    if (gpio.minute.held && state->offset[0] < (SCREEN_X - CANVAS_X)) {
+    if (gpio.minute.held) {
         state->offset[0]++;
     }
 }
@@ -44,10 +44,10 @@ void set_horizontal_alignment(Clock_State_t *state) {
     - M: Move Screen Down
 */
 void set_vertical_alignment(Clock_State_t *state) {
-    if (gpio.hour.held && state->offset[1] > 0) {
+    if (gpio.hour.held) {
         state->offset[1]--;
     }
-    if (gpio.minute.held && state->offset[1] < (SCREEN_Y - CANVAS_Y)) {
+    if (gpio.minute.held) {
         state->offset[1]++;
     }
 }
@@ -141,8 +141,8 @@ void set_clock_size(Clock_State_t *state) {
         update_clock_offset(state);
     }
     if (gpio.minute.pressed && state->profile->digital_clock->width > 2) {
-        state->lamp_on_profile.digital_clock->width += 2;
-        state->lamp_off_profile.digital_clock->width += 2;
+        state->lamp_on_profile.digital_clock->width -= 2;
+        state->lamp_off_profile.digital_clock->width -= 2;
         update_clock_offset(state);
     }
 }
