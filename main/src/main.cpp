@@ -122,18 +122,23 @@ void setup() {
     state.sprite.createSprite(SCREEN_X, SCREEN_Y);
     state.sprite.setSwapBytes(1);
 
+    // disconnect the pin from any other peripheral functions
+    gpio_pad_select_gpio(GPIO_LAMP);
+    gpio_pad_select_gpio(GPIO_ACC);
+    gpio_pad_select_gpio(GPIO_RESET);
+    gpio_pad_select_gpio(GPIO_HOUR);
+    gpio_pad_select_gpio(GPIO_MINUTE);
+
     // set GPIO direction
-    gpio_set_direction(GPIO_ACC, GPIO_MODE_INPUT);
     gpio_set_direction(GPIO_LAMP, GPIO_MODE_INPUT);
+    gpio_set_direction(GPIO_ACC, GPIO_MODE_INPUT);
     gpio_set_direction(GPIO_RESET, GPIO_MODE_INPUT);
     gpio_set_direction(GPIO_HOUR, GPIO_MODE_INPUT);
     gpio_set_direction(GPIO_MINUTE, GPIO_MODE_INPUT);
 
-    // car signals VCC
-    gpio_set_pull_mode(GPIO_ACC, GPIO_PULLDOWN_ONLY);
+    // set internal pulldown by default
     gpio_set_pull_mode(GPIO_LAMP, GPIO_PULLDOWN_ONLY);
-
-    // buttons 3.3V
+    gpio_set_pull_mode(GPIO_ACC, GPIO_PULLDOWN_ONLY);
     gpio_set_pull_mode(GPIO_RESET, GPIO_PULLDOWN_ONLY);
     gpio_set_pull_mode(GPIO_HOUR, GPIO_PULLDOWN_ONLY);
     gpio_set_pull_mode(GPIO_MINUTE, GPIO_PULLDOWN_ONLY);
